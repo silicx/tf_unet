@@ -27,10 +27,8 @@ import logging
 
 import tensorflow as tf
 
-from tf_unet import util
-from tf_unet.layers import (weight_variable, weight_variable_devonc, bias_variable,
-                            conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax,
-                            cross_entropy)
+from . import util
+from .layers import *
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -458,6 +456,7 @@ class Trainer(object):
             return save_path
 
     def store_prediction(self, sess, batch_x, batch_y, name):
+        print(batch_y.shape)
         prediction = sess.run(self.net.predicter, feed_dict={self.net.x: batch_x,
                                                              self.net.y: batch_y,
                                                              self.net.keep_prob: 1.})

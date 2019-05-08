@@ -56,13 +56,13 @@ class BaseDataProvider(object):
         return train_data.reshape(1, ny, nx, self.channels), labels.reshape(1, ny, nx, self.n_class),
     
     def _process_labels(self, label):
-        #if self.n_class == 2:
-        #    nx = label.shape[1]
-        #    ny = label.shape[0]
-        #    labels = np.zeros((ny, nx, self.n_class), dtype=np.float32)
-        #    labels[..., 1] = label
-        #    labels[..., 0] = ~label
-        #    return labels
+        if self.n_class == 2 and label.shape[-1]==1:
+            nx = label.shape[1]
+            ny = label.shape[0]
+            labels = np.zeros((ny, nx, self.n_class), dtype=np.float32)
+            labels[..., 1] = label
+            labels[..., 0] = ~label
+            return labels
         
         return label
     
