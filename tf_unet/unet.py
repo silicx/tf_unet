@@ -465,10 +465,11 @@ class Trainer(object):
                                                   self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                   self.net.keep_prob: 1.})
 
-        logging.info("Verification error= {:.1f}%, loss= {:.4f}".format(error_rate(prediction,
-                                                                                   util.crop_to_shape(batch_y,
-                                                                                                      prediction.shape)),
-                                                                        loss))
+        logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={[0]:.4f}, iou={[0]:.4f}".format(
+            error_rate(prediction, util.crop_to_shape(batch_y, prediction.shape)),loss,
+            dice(batch_x, batch_y, 0),
+            iou(batch_x, batch_y, 0)
+        ))
 
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
         util.save_image(img, "%s/%s.jpg" % (self.prediction_path, name))
@@ -491,10 +492,11 @@ class Trainer(object):
         summary_writer.add_summary(summary_str, step)
         summary_writer.flush()
         logging.info(
-            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, DICE={[0]:.4f}".format(
+            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, dice={[0]:.4f}, iou={[0]:.4f}".format(
                 step, loss, acc,
                 error_rate(predictions, batch_y),
-                dice(predictions, batch_y, classes=0)
+                dice(predictions, batch_y, classes=0),
+                iou(predictions, batch_y, classes=0),
                 ))
 
 
@@ -519,11 +521,6 @@ def error_rate(predictions, labels):
 
 
 def dice(predictions, labels, classes=None):
-    """
-    XY:
-    Return the error rate based on dense predictions and 1-hot labels.
-    """
-
     dices = []
     if classes is None:
         classes = range(predictions.shape[3])
@@ -537,6 +534,26 @@ def dice(predictions, labels, classes=None):
             (gt&pred).sum(axis=(1,2))*2/(gt.sum(axis=(1,2))+pred.sum(axis=(1,2))+1e-5)
         ))
     return dices
+
+
+
+def iou(predictions, labels, classes=None):
+    iou = []
+    if classes is None:
+        classes = range(predictions.shape[3])
+    if type(classes)==int:
+        classes = [classes]
+    
+    for i in classes:
+        gt   = np.argmax(predictions, 3) == i
+        pred = np.argmax(labels, 3) == i
+        iou.append(np.mean(
+            (gt&pred).sum(axis=(1,2))*2/((gt|pred).sum(axis=(1,2))+1e-5)
+        ))
+    return iou
+
+
+
 
 def get_image_summary(img, idx=0):
     """
