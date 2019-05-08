@@ -491,10 +491,10 @@ class Trainer(object):
         summary_writer.add_summary(summary_str, step)
         summary_writer.flush()
         logging.info(
-            "Iter {:}, Minibatch Loss= {:.4f}, Training Accuracy= {:.4f}, Minibatch error= {:.1f}%, DICE={}".format(
+            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, DICE={[0]:.4f}".format(
                 step, loss, acc,
                 error_rate(predictions, batch_y),
-                dice(predictions, batch_y)
+                dice(predictions, batch_y, classes=0)
                 ))
 
 
@@ -518,14 +518,19 @@ def error_rate(predictions, labels):
             (predictions.shape[0] * predictions.shape[1] * predictions.shape[2]))
 
 
-def dice(predictions, labels):
+def dice(predictions, labels, classes=None):
     """
     XY:
     Return the error rate based on dense predictions and 1-hot labels.
     """
 
     dices = []
-    for i in range(predictions.shape[3]):
+    if classes is None:
+        classes = range(predictions.shape[3])
+    if type(classes)==int:
+        classes = [classes]
+    
+    for i in classes:
         gt   = np.argmax(predictions, 3) == i
         pred = np.argmax(labels, 3) == i
         dices.append(np.mean(
