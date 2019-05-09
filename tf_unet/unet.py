@@ -412,10 +412,17 @@ class Trainer(object):
 
             sess.run(init)
 
+            start_epoch = 0
+            counter_file = os.path_join(output_path, "counter.txt")
+
             if restore:
                 ckpt = tf.train.get_checkpoint_state(output_path)
                 if ckpt and ckpt.model_checkpoint_path:
                     self.net.restore(sess, ckpt.model_checkpoint_path)
+                if os.path.exists(counter_file):
+                    with open(counter_file, "r") as f:
+                        start_epoch = int(f.readline())
+                    logging.info("restore counter = {}".format(start_epoch))
 
             test_x, test_y = data_provider(self.verification_batch_size)
             pred_shape = self.store_prediction(sess, test_x, test_y, "_init")
@@ -424,7 +431,7 @@ class Trainer(object):
             logging.info("Start optimization")
 
             avg_gradients = None
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, start_epoch+epochs):
                 total_loss = 0
                 for step in range((epoch * training_iters), ((epoch + 1) * training_iters)):
                     batch_x, batch_y = data_provider(self.batch_size)
@@ -448,9 +455,12 @@ class Trainer(object):
                     total_loss += loss
 
                 self.output_epoch_stats(epoch, total_loss, training_iters, lr)
-                self.store_prediction(sess, test_x, test_y, "epoch_%s" % epoch)
+                #self.store_prediction(sess, test_x, test_y, "epoch_%s" % epoch)
 
                 save_path = self.net.save(sess, save_path)
+                with open(counter_file, "w") as f:
+                    f.write(str(epoch))
+
             logging.info("Optimization Finished!")
 
             return save_path
@@ -465,7 +475,7 @@ class Trainer(object):
                                                   self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                   self.net.keep_prob: 1.})
 
-        logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={[0]:.4f}".format(
+        logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={}".format(
             error_rate(prediction, util.crop_to_shape(batch_y, prediction.shape)),loss,
             dice(batch_x, batch_y, 0),
             #iou(batch_x, batch_y, 0)
@@ -492,10 +502,10 @@ class Trainer(object):
         summary_writer.add_summary(summary_str, step)
         summary_writer.flush()
         logging.info(
-            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, dice={[0]:.4f}".format(
+            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, dice={}".format(
                 step, loss, acc,
                 error_rate(predictions, batch_y),
-                dice(predictions, batch_y, classes=0),
+                dice(predictions, batch_y),
                 #iou(predictions, batch_y, classes=0),
                 ))
 
