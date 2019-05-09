@@ -540,8 +540,14 @@ def dice(predictions, labels, classes=None):
     for i in classes:
         gt   = np.argmax(predictions, 3) == i
         pred = np.argmax(labels, 3) == i
-        dice_arr = (gt&pred).sum(axis=(1,2))*2/(gt.sum(axis=(1,2))+pred.sum(axis=(1,2)))
-        dice_arr = dice_arr[~np.isnan(dice_arr)]
+
+        intersec = (gt&pred).sum(axis=(1,2))*2
+        union    = gt.sum(axis=(1,2))+pred.sum(axis=(1,2))
+        notzero  = (union != 0)
+
+        intersec = intersec[notzero]
+        union    = union[notzero]
+
         if dice_arr.shape[0] == 0:
             dices.append(np.nan)
         else:
@@ -549,24 +555,6 @@ def dice(predictions, labels, classes=None):
     return dices
 
 
-
-def iou(predictions, labels, classes=None):
-    ious = []
-    if classes is None:
-        classes = range(predictions.shape[3])
-    if type(classes)==int:
-        classes = [classes]
-    
-    for i in classes:
-        gt   = np.argmax(predictions, 3) == i
-        pred = np.argmax(labels, 3) == i
-        iou_arr = (gt&pred).sum(axis=(1,2))*2/((gt|pred).sum(axis=(1,2)))
-        iou_arr = dice_arr[~np.isnan(dice_arr)]
-        if iou_arr.shape[0] == 0:
-            ious.append(np.nan)
-        else:
-            ious.append(np.mean(dice_arr))
-    return ious
 
 
 
