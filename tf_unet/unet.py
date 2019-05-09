@@ -492,11 +492,11 @@ class Trainer(object):
         summary_writer.add_summary(summary_str, step)
         summary_writer.flush()
         logging.info(
-            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, dice={[0]:.4f}, iou={[0]:.4f}".format(
+            "Iter {:}, Batch Loss= {:.4f}, Train Acc= {:.4f}, Batch error= {:.1f}%, dice={[0]:.4f}".format(
                 step, loss, acc,
                 error_rate(predictions, batch_y),
                 dice(predictions, batch_y, classes=0),
-                iou(predictions, batch_y, classes=0),
+                #iou(predictions, batch_y, classes=0),
                 ))
 
 
@@ -530,15 +530,18 @@ def dice(predictions, labels, classes=None):
     for i in classes:
         gt   = np.argmax(predictions, 3) == i
         pred = np.argmax(labels, 3) == i
-        dices.append(np.mean(
-            (gt&pred).sum(axis=(1,2))*2/(gt.sum(axis=(1,2))+pred.sum(axis=(1,2))+1e-5)
-        ))
+        dice_arr = (gt&pred).sum(axis=(1,2))*2/(gt.sum(axis=(1,2))+pred.sum(axis=(1,2)))
+        dice_arr = dice_arr[~np.isnan(dice_arr)]
+        if dice_arr.shape[0] == 0:
+            dices.append(np.nan)
+        else:
+            dices.append(np.mean(dice_arr))
     return dices
 
 
 
 def iou(predictions, labels, classes=None):
-    iou = []
+    ious = []
     if classes is None:
         classes = range(predictions.shape[3])
     if type(classes)==int:
@@ -547,10 +550,13 @@ def iou(predictions, labels, classes=None):
     for i in classes:
         gt   = np.argmax(predictions, 3) == i
         pred = np.argmax(labels, 3) == i
-        iou.append(np.mean(
-            (gt&pred).sum(axis=(1,2))*2/((gt|pred).sum(axis=(1,2))+1e-5)
-        ))
-    return iou
+        iou_arr = (gt&pred).sum(axis=(1,2))*2/((gt|pred).sum(axis=(1,2)))
+        iou_arr = dice_arr[~np.isnan(dice_arr)]
+        if iou_arr.shape[0] == 0:
+            ious.append(np.nan)
+        else:
+            ious.append(np.mean(dice_arr))
+    return ious
 
 
 
