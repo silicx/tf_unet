@@ -413,7 +413,7 @@ class Trainer(object):
             sess.run(init)
 
             start_epoch = 0
-            counter_file = os.path_join(output_path, "counter.txt")
+            counter_file = os.path.join(output_path, "counter.txt")
 
             if restore:
                 ckpt = tf.train.get_checkpoint_state(output_path)
