@@ -465,10 +465,10 @@ class Trainer(object):
                                                   self.net.y: util.crop_to_shape(batch_y, pred_shape),
                                                   self.net.keep_prob: 1.})
 
-        logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={[0]:.4f}, iou={[0]:.4f}".format(
+        logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={[0]:.4f}".format(
             error_rate(prediction, util.crop_to_shape(batch_y, prediction.shape)),loss,
             dice(batch_x, batch_y, 0),
-            iou(batch_x, batch_y, 0)
+            #iou(batch_x, batch_y, 0)
         ))
 
         img = util.combine_img_prediction(batch_x, batch_y, prediction)
@@ -486,7 +486,7 @@ class Trainer(object):
                                                         self.net.cost,
                                                         self.net.accuracy,
                                                         self.net.predicter],
-                                                       feed_dict={self.net.x: batch_x,
+                                                        feed_dict={self.net.x: batch_x,
                                                                   self.net.y: batch_y,
                                                                   self.net.keep_prob: 1.})
         summary_writer.add_summary(summary_str, step)
