@@ -548,6 +548,8 @@ def dice(predictions, labels, classes=None):
         intersec = intersec[notzero]
         union    = union[notzero]
 
+        dice_arr = intersec/union
+
         if dice_arr.shape[0] == 0:
             dices.append(np.nan)
         else:
