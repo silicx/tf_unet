@@ -455,7 +455,7 @@ class Trainer(object):
                     total_loss += loss
 
                 self.output_epoch_stats(epoch, total_loss, training_iters, lr)
-                #self.store_prediction(sess, test_x, test_y, "epoch_%s" % epoch)
+                self.store_prediction(sess, test_x, test_y, "epoch_%s" % epoch)
 
                 save_path = self.net.save(sess, save_path)
                 with open(counter_file, "w") as f:
@@ -477,12 +477,12 @@ class Trainer(object):
 
         logging.info("Verification error= {:.1f}%, loss= {:.4f}, dice={}".format(
             error_rate(prediction, util.crop_to_shape(batch_y, prediction.shape)),loss,
-            dice(batch_x, batch_y, 0),
+            dice(batch_x, batch_y),
             #iou(batch_x, batch_y, 0)
         ))
 
-        img = util.combine_img_prediction(batch_x, batch_y, prediction)
-        util.save_image(img, "%s/%s.jpg" % (self.prediction_path, name))
+        #img = util.combine_img_prediction(batch_x, batch_y, prediction)
+        #util.save_image(img, "%s/%s.jpg" % (self.prediction_path, name))
 
         return pred_shape
 
